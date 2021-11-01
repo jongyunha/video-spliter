@@ -15,5 +15,5 @@ docker-compose up --build -d
 
 ### TODO
 
--   [ ] Split video according to row and column values
--   [ ] Supporting h264 codec using ffmpeg
+-   [x] Split video according to row and column values
+-   [] return file name

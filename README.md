@@ -16,4 +16,5 @@ docker-compose up --build -d
 ### TODO
 
 -   [x] Split video according to row and column values
--   [] return file name
+-   [x] return file name
+-   [x] return elapsed time

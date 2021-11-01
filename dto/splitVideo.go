@@ -1,6 +1,9 @@
 package dto
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 type SplitVideoRequest struct {
 	Rows      int
@@ -10,7 +13,8 @@ type SplitVideoRequest struct {
 }
 
 type SplitVideoResponse struct {
-	VideoURL string `json:"video_url"`
+	VideoPaths  []string      `json:"video_paths"`
+	ElapsedTime time.Duration `json:"elapsed_time"`
 }
 
 func (r SplitVideoRequest) Validate() error {

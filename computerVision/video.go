@@ -61,9 +61,9 @@ func getHeights(frameHeight, columns int) []int {
 	return heights
 }
 
-func createVideoWriters(videoNames []string, fps float64, w, h int) ([]gocv.VideoWriter, error) {
+func createVideoWriters(videoPaths []string, fps float64, w, h int) ([]gocv.VideoWriter, error) {
 	vws := make([]gocv.VideoWriter, 0)
-	for _, name := range videoNames {
+	for _, name := range videoPaths {
 		vw, err := gocv.VideoWriterFile(name, "H264", fps, w, h, true)
 		if err != nil {
 			return nil, err
@@ -73,14 +73,14 @@ func createVideoWriters(videoNames []string, fps float64, w, h int) ([]gocv.Vide
 	return vws, nil
 }
 
-func createVideoNames(rows, columns int) []string {
-	videoNames := make([]string, 0)
+func createVideoPaths(rows, columns int) []string {
+	videoPaths := make([]string, 0)
 	dir, _ := os.Getwd()
 	for i := 0; i < rows*columns; i++ {
 		uuid4, _ := uuid.NewV4()
-		videoNames = append(videoNames, fmt.Sprintf("%s/%s.mov", dir, uuid4))
+		videoPaths = append(videoPaths, fmt.Sprintf("%s/%s.mov", dir, uuid4))
 	}
-	return videoNames
+	return videoPaths
 }
 
 func getCropRects(sWidth, sHeight int, widths, heights []int) []CropRect {
@@ -99,12 +99,12 @@ func getCropRects(sWidth, sHeight int, widths, heights []int) []CropRect {
 	return cropRects
 }
 
-func (v DefaultVideo) Split(req dto.SplitVideoRequest) error {
+func (v DefaultVideo) Split(req dto.SplitVideoRequest) (*dto.SplitVideoResponse, error) {
 	cap, err := gocv.VideoCaptureFile(req.VideoPath)
 
 	if err != nil {
 		log.Println("Cannot read videofile")
-		return err
+		return nil, err
 	}
 
 	fps := cap.Get(gocv.VideoCaptureFPS)
@@ -112,11 +112,11 @@ func (v DefaultVideo) Split(req dto.SplitVideoRequest) error {
 	frameHeight := int(cap.Get(gocv.VideoCaptureFrameHeight))
 	widths := getWidths(frameWidth, req.Rows)
 	heights := getHeights(frameHeight, req.Columns)
-	videoNames := createVideoNames(req.Rows, req.Columns)
-	videoWriters, err := createVideoWriters(videoNames, fps, frameWidth/req.Rows, frameHeight/req.Columns)
+	videoPaths := createVideoPaths(req.Rows, req.Columns)
+	videoWriters, err := createVideoWriters(videoPaths, fps, frameWidth/req.Rows, frameHeight/req.Columns)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 	cropRects := getCropRects(frameWidth/req.Rows, frameHeight/req.Columns, widths, heights)
 	splitDefine := SplitDefine{
@@ -150,7 +150,11 @@ func (v DefaultVideo) Split(req dto.SplitVideoRequest) error {
 		vw.Close()
 	}
 
-	return nil
+	res := dto.SplitVideoResponse{
+		VideoPaths: videoPaths,
+	}
+
+	return &res, nil
 }
 
 func NewVideo() DefaultVideo {

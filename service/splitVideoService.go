@@ -3,7 +3,6 @@ package service
 import (
 	cv "gocv-example/computerVision"
 	"gocv-example/dto"
-	"log"
 	"time"
 )
 
@@ -21,11 +20,14 @@ func (s DefaultSplitVideoService) SplitVideo(req dto.SplitVideoRequest) (*dto.Sp
 	video := cv.NewVideo()
 
 	startTime := time.Now()
-	video.Split(req)
+	res, err := video.Split(req)
+	if err != nil {
+		return nil, err
+	}
 	elapsedTime := time.Since(startTime)
-	log.Printf("실행시간: %s\n", elapsedTime)
+	res.ElapsedTime = elapsedTime
 
-	return &dto.SplitVideoResponse{VideoURL: req.VideoPath}, nil
+	return res, nil
 }
 
 func NewSplitVideoService() DefaultSplitVideoService {
